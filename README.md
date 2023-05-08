@@ -30,24 +30,22 @@ npm install -g dockenv
 To convert a .NET user secrets JSON file to a .env file, use the following command:
 
 ```shell
-dockenv -i <input_file> [-o <output_file>]
+dotnet user-secrets list --project path/to/your/dotnet/project | dockenv -o <output_file>
 ```
 
-- `<input_file>`: Path to the .NET user secrets JSON file.
 - `<output_file>` (optional): Path to the output .env file. If not specified, the tool will create a .env file in the same directory as the input file with the same name.
 
-### Examples
+**For example:**
 
-1. Convert `example.json` to `example.env` in the same directory:
-  
-    ```shell
-    dockenv -i example/example.json
-    ```
-   
-2. Convert `example.json` to a custom output path:
-    ```shell
-    dockenv -i example/example.json -o custom/path/example.env
-    ```
+A .NET project located at: `~/projects/my-project`
+
+Targeting an output located at: `~/projects/my-project/secrets.env`
+
+The command would be:
+
+```shell
+dotnet user-secrets list --project ~/projects/my-project | dockenv -o ~/projects/my-project/secrets.env
+```
 
 ## Contributing
 

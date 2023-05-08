@@ -6,18 +6,11 @@ const readline = require('readline');
 
 // Configure command line arguments
 program
-  .option('-i, --input <path>', 'Path to the secrets JSON file')
   .option('-o, --output [path]', 'Path to the output .env file')
   .parse();
 
 // Parse command line arguments
 const options = program.opts();
-
-// Validate the input path
-if (!options.input) {
-  console.error('Please provide the path to the secrets JSON file using the --input or -i argument');
-  process.exit(1);
-}
 
 // Resolve output path
 const outputPath =
@@ -27,7 +20,7 @@ const outputPath =
       : path.extname(options.output) === '.env'
         ? options.output
         : `${options.output}.env`
-    : path.resolve(path.dirname(options.input), `${path.basename(options.input, '.json')}.env`);
+    : path.resolve(process.cwd(), 'secrets.env');
 
 // Check if the output file exists and prompt the user to continue
 function checkFileExistsAndPrompt(outputPath) {
@@ -55,23 +48,36 @@ function checkFileExistsAndPrompt(outputPath) {
   });
 }
 
-// Load secrets from the JSON file
-const secrets = require(path.resolve(options.input));
+// Convert the input to a JSON object
+function parseInput(input) {
+  const lines = input.split('\n').filter((line) => line.trim() !== '');
+  const secrets = {};
+
+  for (const line of lines) {
+    const [key, value] = line.split(' = ').map((str) => str.trim());
+    secrets[key.replace(/:/g, '__')] = value;
+  }
+
+  return secrets;
+}
 
 // Convert the secrets to a string
-function convertToEnv(obj, prefix = '') {
+function convertToEnv(obj) {
   return Object.entries(obj).reduce((env, [key, value]) => {
-    key = key.replace(/:/g, '__'); // Replace colons with underscores
-    if (typeof value === 'object') {
-      return env + convertToEnv(value, `${prefix}${key}__`);
-    } else {
-      return env + `${prefix}${key}=${value}\n`;
-    }
+    return env + `${key}=${value}\n`;
   }, '');
 }
 
-// Write the string to the output file and log the output file path
-(async function () {
+// Read input from stdin
+let input = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  input += chunk;
+});
+
+// Write the output to the output file and log the output file path
+process.stdin.on('end', async () => {
+  const secrets = parseInput(input);
   const proceed = await checkFileExistsAndPrompt(outputPath);
 
   if (proceed) {
@@ -85,7 +91,7 @@ function convertToEnv(obj, prefix = '') {
     fs.writeFileSync(outputPath, env);
     console.log(`Secrets written to ${path.relative(process.cwd(), outputPath)}`);
   }
-})();
+});
 
 module.exports = {
   convertToEnv,
