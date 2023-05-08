@@ -7,6 +7,7 @@ const readline = require('readline');
 // Configure command line arguments
 program
   .option('-o, --output [path]', 'Path to the output .env file')
+  .option('-f, --force', 'Overwrite the output file without prompting')
   .parse();
 
 // Parse command line arguments
@@ -26,27 +27,32 @@ const outputPath =
 function checkFileExistsAndPrompt(outputPath) {
   return new Promise((resolve, reject) => {
     if (fs.existsSync(outputPath)) {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-      });
+      if (options.force) {
+        resolve(true);
+      } else {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout,
+        });
 
-      const relativePath = path.relative(process.cwd(), outputPath);
-      rl.question(`The file ${relativePath} already exists. Do you want to overwrite it? (y/n) `, (answer) => {
-        rl.close();
+        const relativePath = path.relative(process.cwd(), outputPath);
+        rl.question(`The file ${relativePath} already exists. Do you want to overwrite it? (y/n) `, (answer) => {
+          rl.close();
 
-        if (answer.toLowerCase() === 'y') {
-          resolve(true);
-        } else {
-          console.log('Operation canceled.');
-          resolve(false);
-        }
-      });
+          if (answer.toLowerCase() === 'y') {
+            resolve(true);
+          } else {
+            console.log('Operation canceled.');
+            resolve(false);
+          }
+        });
+      }
     } else {
       resolve(true);
     }
   });
 }
+
 
 // Convert the input to a JSON object
 function parseInput(input) {
