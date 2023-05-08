@@ -25,7 +25,7 @@ const outputPath =
 
 // Check if the output file exists and prompt the user to continue
 function checkFileExistsAndPrompt(outputPath) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     if (fs.existsSync(outputPath)) {
       if (options.force) {
         resolve(true);
