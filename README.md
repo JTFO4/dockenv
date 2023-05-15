@@ -20,7 +20,7 @@ git clone https://github.com/JTFO4/dockenv.git
 Then, navigate to the project directory and run the following command:
 
 ```shell
-npm install -g dockenv
+npm install -g
 ```
 
 
