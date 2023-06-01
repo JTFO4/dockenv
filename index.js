@@ -2,16 +2,23 @@
 const { program } = require('commander');
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
 
 // Configure command line arguments
 program
   .option('-o, --output [path]', 'Path to the output .env file')
   .option('-f, --force', 'Overwrite the output file without prompting')
+  .option('-b64, --base64', 'Encode the output file values as base64')
+  .option('-v, --version', 'Output the version number')
   .parse();
+
 
 // Parse command line arguments
 const options = program.opts();
+
+if (options.version) {
+    console.log('1.0.1');
+    process.exit(0);
+}
 
 // Resolve output path
 const outputPath =
@@ -30,22 +37,8 @@ function checkFileExistsAndPrompt(outputPath) {
       if (options.force) {
         resolve(true);
       } else {
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout,
-        });
-
         const relativePath = path.relative(process.cwd(), outputPath);
-        rl.question(`The file ${relativePath} already exists. Do you want to overwrite it? (y/n) `, (answer) => {
-          rl.close();
-
-          if (answer.toLowerCase() === 'y') {
-            resolve(true);
-          } else {
-            console.log('Operation canceled.');
-            resolve(false);
-          }
-        });
+        console.log(`The file ${relativePath} already exists. Please use the --force flag to overwrite it.`);
       }
     } else {
       resolve(true);
@@ -61,7 +54,9 @@ function parseInput(input) {
 
   for (const line of lines) {
     const [key, value] = line.split(' = ').map((str) => str.trim());
-    secrets[key.replace(/:/g, '__')] = value;
+    secrets[key.replace(/:/g, '__')] = options.base64
+      ? Buffer.from(value).toString('base64')
+      : value;
   }
 
   return secrets;
