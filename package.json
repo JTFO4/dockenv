@@ -1,7 +1,7 @@
 {
   "name": "dockenv",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "Dockenv is a command-line tool for converting .NET user secrets JSON files to .env files for use with Docker. It simplifies the process of setting up environment variables in Docker containers when working with .NET projects.",
   "main": "index.js",
   "bin": {
     "dockenv": "index.js"
